@@ -70,31 +70,31 @@ public class MeshGenerator : MonoBehaviour
             for (int x = 0; x <= width - 1; x++)
             {
 
-                Vector2 uv = BiomeData.GetBiomeInfo(x, y);
+                TerrainData.AddTile(x, y);
 
                 //Top
                 Vector3[] topVerts = AddTop(x, y);
 
                 // Sides
 
-                bool isWaterTile = IsWaterTile(x, y);
+                bool isWaterTile = TerrainData.IsWaterTile(x,y);
 
-                if (x == 0 || (IsWaterTile(x-1, y) && !isWaterTile))
+                if (x == 0 || (TerrainData.IsWaterTile(x-1, y) && !isWaterTile))
                 {
                     AddSide(Sides.Left, topVerts, x, y);
                 }
 
-                if (x == width - 1 || (IsWaterTile(x + 1, y) && !isWaterTile))
+                if (x == width - 1 || (TerrainData.IsWaterTile(x + 1, y) && !isWaterTile))
                 {
                     AddSide(Sides.Right, topVerts, x, y);
                 }
 
-                if (y == 0 || (IsWaterTile(x, y - 1) && !isWaterTile))
+                if (y == 0 || (TerrainData.IsWaterTile(x, y - 1) && !isWaterTile))
                 {
                     AddSide(Sides.Down, topVerts, x, y);
                 }
 
-                if (y == length - 1 || (IsWaterTile(x, y + 1) && !isWaterTile))
+                if (y == length - 1 || (TerrainData.IsWaterTile(x, y + 1) && !isWaterTile))
                 {
                     AddSide(Sides.Up, topVerts, x, y);
                 }
@@ -107,15 +107,6 @@ public class MeshGenerator : MonoBehaviour
         meshRenderer.sharedMaterial = mat;
 
         UpdateColours();
-    }
-
-    bool IsWaterTile(int x, int y)
-    {
-        Vector2 uv = BiomeData.GetBiomeInfo(x, y);
-
-        bool isWaterTile = uv.x == 0f;
-
-        return isWaterTile;
     }
 
     void SetupBiomes()
@@ -155,7 +146,7 @@ public class MeshGenerator : MonoBehaviour
         float minW = (centre) ? -width / 2f : 0;
         float minH = (centre) ? -length / 2f : 0;
 
-        bool isWaterTile = IsWaterTile(x, y);
+        bool isWaterTile = TerrainData.IsWaterTile(x, y);
 
         float depth = isWaterTile ? -waterTileHeight : landTileHeight;
 
@@ -174,7 +165,7 @@ public class MeshGenerator : MonoBehaviour
 
     void AddSide(Sides side, Vector3[] topVerts, int x, int y)
     {
-        bool isWaterTile = IsWaterTile(x, y);
+        bool isWaterTile = TerrainData.IsWaterTile(x, y);
 
         float depth = isWaterTile ? waterTileHeight : waterTileHeight * 2;
 
@@ -201,6 +192,7 @@ public class MeshGenerator : MonoBehaviour
         Vector2 uv = BiomeData.GetBiomeInfo(x, y);
 
         Color color = Color.Lerp(startCols[(int)uv.x], endCols[(int)uv.x], uv.y);
+
         meshData.colors.AddRange(new[] { color, color, color, color });
 
         meshData.tris.Add(vi);
