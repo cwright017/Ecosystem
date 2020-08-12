@@ -42,7 +42,6 @@ public class MeshGenerator : MonoBehaviour
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
     Mesh mesh;
-    MeshData meshData;
 
     float waterTileHeight = 0.2f;
     float landTileHeight = 0f;
@@ -104,7 +103,7 @@ public class MeshGenerator : MonoBehaviour
             }
         }
 
-        meshData.attach(mesh);
+        MeshData.attach(mesh);
     }
 
     void SetupBiomes()
@@ -123,8 +122,6 @@ public class MeshGenerator : MonoBehaviour
 
         meshRenderer = holder.AddComponent<MeshRenderer>();
         meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-        meshData = new MeshData();
 
         if (meshFilter.sharedMesh == null)
         {
@@ -190,26 +187,26 @@ public class MeshGenerator : MonoBehaviour
 
     void AddFace(Vector3[] sideVerts, int x, int y, float depth)
     {
-        int vi = meshData.verts.Count;
+        int vi = MeshData.verts.Count;
 
         Color[] startCols = { water.startCol, sand.startCol, grass.startCol };
         Color[] endCols = { water.endCol, sand.endCol, grass.endCol };
 
-        meshData.verts.AddRange(sideVerts);
+        MeshData.verts.AddRange(sideVerts);
 
         Vector2 uv = BiomeData.GetBiomeInfo(x, y);
 
         Color color = Color.Lerp(startCols[(int)uv.x], endCols[(int)uv.x], uv.y);
 
-        meshData.colors.AddRange(new[] { color, color, color, color });
+        MeshData.colors.AddRange(new[] { color, color, color, color });
 
-        meshData.tris.Add(vi);
-        meshData.tris.Add(vi + 1);
-        meshData.tris.Add(vi + 2);
+        MeshData.tris.Add(vi);
+        MeshData.tris.Add(vi + 1);
+        MeshData.tris.Add(vi + 2);
 
-        meshData.tris.Add(vi + 2);
-        meshData.tris.Add(vi + 1);
-        meshData.tris.Add(vi + 3);
+        MeshData.tris.Add(vi + 2);
+        MeshData.tris.Add(vi + 1);
+        MeshData.tris.Add(vi + 3);
     }
 
 }
