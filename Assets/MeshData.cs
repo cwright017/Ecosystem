@@ -9,4 +9,13 @@ public class MeshData
     public List<int> tris = new List<int>();
     public List<Vector3> normals = new List<Vector3>();
     public List<Color> colors = new List<Color>();
+
+    public void attach(Mesh mesh)
+    {
+        mesh.SetVertices(verts);
+        mesh.SetTriangles(tris, 0, true);
+        mesh.SetColors(colors);
+
+        mesh.RecalculateNormals();
+    }
 }

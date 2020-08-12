@@ -99,19 +99,10 @@ public class MeshGenerator : MonoBehaviour
                     AddSide(Sides.Up, topVerts, w, l);
                 }
 
-                //foreach (Sides side in Enum.GetValues(typeof(Sides)))
-                //{
-                //    AddSide(side, topVerts, w, l);
-                //}
-
             }
         }
 
-        mesh.SetVertices(meshData.verts);
-        mesh.SetTriangles(meshData.tris, 0, true);
-        mesh.SetColors(meshData.colors);
-
-        mesh.RecalculateNormals();
+        meshData.attach(mesh);
 
         meshRenderer.sharedMaterial = mat;
 
