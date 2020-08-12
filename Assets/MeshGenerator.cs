@@ -47,8 +47,6 @@ public class MeshGenerator : MonoBehaviour
     float waterTileHeight = 0.2f;
     float landTileHeight = 0f;
 
-    List<Biome> biomes;
-
     IDictionary<Sides, int[]> sideVertIndexByDir = new Dictionary<Sides, int[]>()
     {
         { Sides.Up, new int[] { 0, 1 } },
@@ -57,21 +55,23 @@ public class MeshGenerator : MonoBehaviour
         { Sides.Right, new int[] { 1, 3 } },
     };
 
-    float[,] heightMap;
-
     public void Generate()
     {
         SetupMeshComponents();
 
         SetupBiomes();
 
-        heightMap = HeightmapGenerator.Generate(noiseSettings, width, length, true);
+        TerrainData.Setup(width, length);
+
+        TerrainData.heightMap = HeightmapGenerator.Generate(noiseSettings, width, length, true);
 
         for (int l = 0; l <= length - 1; l++)
         {
             for (int w = 0; w <= width - 1; w++)
             {
 
+                Vector2 uv = BiomeData.GetBiomeInfo(w, l);
+                
                 //Top
                 Vector3[] topVerts = AddTop(w, l);
 
@@ -111,7 +111,7 @@ public class MeshGenerator : MonoBehaviour
 
     bool IsWaterTile(int w, int l)
     {
-        Vector2 uv = GetBiomeInfo(heightMap[w, l]);
+        Vector2 uv = BiomeData.GetBiomeInfo(w, l);
 
         bool isWaterTile = uv.x == 0f;
 
@@ -120,11 +120,9 @@ public class MeshGenerator : MonoBehaviour
 
     void SetupBiomes()
     {
-        biomes = new List<Biome>();
-
-        biomes.Add(water);
-        biomes.Add(sand);
-        biomes.Add(grass);
+        BiomeData.biomes.Add(water);
+        BiomeData.biomes.Add(sand);
+        BiomeData.biomes.Add(grass);
 
     }
 
@@ -200,7 +198,7 @@ public class MeshGenerator : MonoBehaviour
 
         meshData.verts.AddRange(sideVerts);
 
-        Vector2 uv = GetBiomeInfo(heightMap[w, l]);
+        Vector2 uv = BiomeData.GetBiomeInfo(w, l);
 
         Color color = Color.Lerp(startCols[(int)uv.x], endCols[(int)uv.x], uv.y);
         meshData.colors.AddRange(new[] { color, color, color, color });
@@ -220,31 +218,6 @@ public class MeshGenerator : MonoBehaviour
         {
             mat.SetColor("_Color", Color.white);
         }
-    }
-
-    Vector2 GetBiomeInfo(float height)
-    {
-        // Find current biome
-        int biomeIndex = 0;
-        float biomeStartHeight = 0;
-
-        for (int i = 0; i < biomes.Count; i++)
-        {
-            if (height <= biomes[i].height)
-            {
-                biomeIndex = i;
-                break;
-            }
-            biomeStartHeight = biomes[i].height;
-        }
-
-        Biome biome = biomes[biomeIndex];
-        float sampleT = Mathf.InverseLerp(biomeStartHeight, biome.height, height);
-        sampleT = (int)(sampleT * biome.numSteps) / (float)Mathf.Max(biome.numSteps, 1);
-
-        // UV stores x: biomeIndex and y: val between 0 and 1 for how close to prev/next biome
-        Vector2 uv = new Vector2(biomeIndex, sampleT);
-        return uv;
     }
 
 }
