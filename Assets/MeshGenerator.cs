@@ -61,6 +61,8 @@ public class MeshGenerator : MonoBehaviour
 
         SetupBiomes();
 
+        SetupMaterial();
+
         TerrainData.Setup(width, length);
 
         TerrainData.heightMap = HeightmapGenerator.Generate(noiseSettings, width, length, true);
@@ -103,10 +105,6 @@ public class MeshGenerator : MonoBehaviour
         }
 
         meshData.attach(mesh);
-
-        meshRenderer.sharedMaterial = mat;
-
-        UpdateColours();
     }
 
     void SetupBiomes()
@@ -138,6 +136,16 @@ public class MeshGenerator : MonoBehaviour
         {
             mesh = meshFilter.sharedMesh;
             mesh.Clear();
+        }
+    }
+
+    void SetupMaterial()
+    {
+        if (mat != null)
+        {
+            mat.SetColor("_Color", Color.white);
+
+            meshRenderer.sharedMaterial = mat;
         }
     }
 
@@ -202,14 +210,6 @@ public class MeshGenerator : MonoBehaviour
         meshData.tris.Add(vi + 2);
         meshData.tris.Add(vi + 1);
         meshData.tris.Add(vi + 3);
-    }
-
-    void UpdateColours()
-    {
-        if (mat != null)
-        {
-            mat.SetColor("_Color", Color.white);
-        }
     }
 
 }
