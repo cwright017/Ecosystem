@@ -23,6 +23,8 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class MeshGenerator : MonoBehaviour
 {
+    enum Sides { Up, Down, Left, Right };
+
     public int width;
     public int length;
 
@@ -252,27 +254,6 @@ public class MeshGenerator : MonoBehaviour
         // UV stores x: biomeIndex and y: val between 0 and 1 for how close to prev/next biome
         Vector2 uv = new Vector2(biomeIndex, sampleT);
         return uv;
-    }
-
-    class MeshData
-    {
-        public List<Vector3> verts = new List<Vector3>();
-        public List<Vector2> uv = new List<Vector2>();
-        public List<int> tris = new List<int>();
-        public List<Vector3> normals = new List<Vector3>();
-        public List<Color> colors = new List<Color>();
-    }
-
-    enum Sides { Up, Down, Left, Right };
-
-    [System.Serializable]
-    public class Biome
-    {
-        [Range(0, 1)]
-        public float height;
-        public Color startCol;
-        public Color endCol;
-        public int numSteps;
     }
 
 }
