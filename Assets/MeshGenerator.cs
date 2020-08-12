@@ -47,8 +47,6 @@ public class MeshGenerator : MonoBehaviour
 
     List<Biome> biomes;
 
-    Vector3[] upVectorX4 = { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
-
     IDictionary<Sides, int[]> sideVertIndexByDir = new Dictionary<Sides, int[]>()
     {
         { Sides.Up, new int[] { 0, 1 } },
@@ -109,7 +107,7 @@ public class MeshGenerator : MonoBehaviour
 
         mesh.SetVertices(meshData.verts);
         mesh.SetTriangles(meshData.tris, 0, true);
-        mesh.SetUVs(0, meshData.uv);
+        mesh.SetColors(meshData.colors);
 
         mesh.RecalculateNormals();
 
@@ -120,7 +118,7 @@ public class MeshGenerator : MonoBehaviour
 
     bool IsWaterTile(int w, int l)
     {
-        Vector2 uv = GetBiomeInfo(heightMap[w, l], biomes);
+        Vector2 uv = GetBiomeInfo(heightMap[w, l]);
 
         bool isWaterTile = uv.x == 0f;
 
@@ -204,10 +202,15 @@ public class MeshGenerator : MonoBehaviour
     {
         int vi = meshData.verts.Count;
 
+        Color[] startCols = { water.startCol, sand.startCol, grass.startCol };
+        Color[] endCols = { water.endCol, sand.endCol, grass.endCol };
+
         meshData.verts.AddRange(sideVerts);
 
-        Vector2 uv = GetBiomeInfo(heightMap[w, l], biomes);
-        meshData.uv.AddRange(new Vector2[] { uv, uv, uv, uv });
+        Vector2 uv = GetBiomeInfo(heightMap[w, l]);
+
+        Color color = Color.Lerp(startCols[(int)uv.x], endCols[(int)uv.x], uv.y);
+        meshData.colors.AddRange(new[] { color, color, color, color });
 
         meshData.tris.Add(vi);
         meshData.tris.Add(vi + 1);
@@ -222,14 +225,11 @@ public class MeshGenerator : MonoBehaviour
     {
         if (mat != null)
         {
-            Color[] startCols = { water.startCol, sand.startCol, grass.startCol };
-            Color[] endCols = { water.endCol, sand.endCol, grass.endCol };
-            mat.SetColorArray("_StartCols", startCols);
-            mat.SetColorArray("_EndCols", endCols);
+            mat.SetColor("_Color", Color.white);
         }
     }
 
-    Vector2 GetBiomeInfo(float height, List<Biome> biomes)
+    Vector2 GetBiomeInfo(float height)
     {
         // Find current biome
         int biomeIndex = 0;
@@ -260,6 +260,7 @@ public class MeshGenerator : MonoBehaviour
         public List<Vector2> uv = new List<Vector2>();
         public List<int> tris = new List<int>();
         public List<Vector3> normals = new List<Vector3>();
+        public List<Color> colors = new List<Color>();
     }
 
     enum Sides { Up, Down, Left, Right };
