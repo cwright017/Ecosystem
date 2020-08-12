@@ -45,11 +45,11 @@ public static class HeightmapGenerator
 
         if (normalize)
         {
-            for(int l = 0; l < length; l++)
+            for(int y = 0; y < length; y++)
             {
-                for(int w = 0; w < width; w++)
+                for(int x = 0; x < width; x++)
                 {
-                    map[w, l] = Mathf.InverseLerp(minHeight, maxHeight, map[w, l]);
+                    map[x, y] = Mathf.InverseLerp(minHeight, maxHeight, map[x, y]);
                 }
             }
         }

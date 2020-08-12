@@ -65,38 +65,38 @@ public class MeshGenerator : MonoBehaviour
 
         TerrainData.heightMap = HeightmapGenerator.Generate(noiseSettings, width, length, true);
 
-        for (int l = 0; l <= length - 1; l++)
+        for (int y = 0; y <= length - 1; y++)
         {
-            for (int w = 0; w <= width - 1; w++)
+            for (int x = 0; x <= width - 1; x++)
             {
 
-                Vector2 uv = BiomeData.GetBiomeInfo(w, l);
-                
+                Vector2 uv = BiomeData.GetBiomeInfo(x, y);
+
                 //Top
-                Vector3[] topVerts = AddTop(w, l);
+                Vector3[] topVerts = AddTop(x, y);
 
                 // Sides
 
-                bool isWaterTile = IsWaterTile(w, l);
+                bool isWaterTile = IsWaterTile(x, y);
 
-                if (w == 0 || (IsWaterTile(w-1, l) && !isWaterTile))
+                if (x == 0 || (IsWaterTile(x-1, y) && !isWaterTile))
                 {
-                    AddSide(Sides.Left, topVerts, w, l);
+                    AddSide(Sides.Left, topVerts, x, y);
                 }
 
-                if (w == width - 1 || (IsWaterTile(w + 1, l) && !isWaterTile))
+                if (x == width - 1 || (IsWaterTile(x + 1, y) && !isWaterTile))
                 {
-                    AddSide(Sides.Right, topVerts, w, l);
+                    AddSide(Sides.Right, topVerts, x, y);
                 }
 
-                if (l == 0 || (IsWaterTile(w, l - 1) && !isWaterTile))
+                if (y == 0 || (IsWaterTile(x, y - 1) && !isWaterTile))
                 {
-                    AddSide(Sides.Down, topVerts, w, l);
+                    AddSide(Sides.Down, topVerts, x, y);
                 }
 
-                if (l == length - 1 || (IsWaterTile(w, l + 1) && !isWaterTile))
+                if (y == length - 1 || (IsWaterTile(x, y + 1) && !isWaterTile))
                 {
-                    AddSide(Sides.Up, topVerts, w, l);
+                    AddSide(Sides.Up, topVerts, x, y);
                 }
 
             }
@@ -109,9 +109,9 @@ public class MeshGenerator : MonoBehaviour
         UpdateColours();
     }
 
-    bool IsWaterTile(int w, int l)
+    bool IsWaterTile(int x, int y)
     {
-        Vector2 uv = BiomeData.GetBiomeInfo(w, l);
+        Vector2 uv = BiomeData.GetBiomeInfo(x, y);
 
         bool isWaterTile = uv.x == 0f;
 
@@ -150,31 +150,31 @@ public class MeshGenerator : MonoBehaviour
         }
     }
 
-    Vector3[] AddTop(int w, int l)
+    Vector3[] AddTop(int x, int y)
     {
         float minW = (centre) ? -width / 2f : 0;
         float minH = (centre) ? -length / 2f : 0;
 
-        bool isWaterTile = IsWaterTile(w, l);
+        bool isWaterTile = IsWaterTile(x, y);
 
         float depth = isWaterTile ? -waterTileHeight : landTileHeight;
 
         // Top 
-        Vector3 a = new Vector3(minW + w, depth, minH + l + 1);
+        Vector3 a = new Vector3(minW + x, depth, minH + y + 1);
         Vector3 b = a + Vector3.right;
         Vector3 c = a + Vector3.back;
         Vector3 d = c + Vector3.right;
 
         Vector3[] topVerts = { a, b, c, d };
 
-        AddFace(topVerts, w, l, depth);
+        AddFace(topVerts, x, y, depth);
 
         return topVerts;
     }
 
-    void AddSide(Sides side, Vector3[] topVerts, int w, int l)
+    void AddSide(Sides side, Vector3[] topVerts, int x, int y)
     {
-        bool isWaterTile = IsWaterTile(w, l);
+        bool isWaterTile = IsWaterTile(x, y);
 
         float depth = isWaterTile ? waterTileHeight : waterTileHeight * 2;
 
@@ -185,11 +185,11 @@ public class MeshGenerator : MonoBehaviour
         Vector3 d = c + Vector3.down * depth;
 
         Vector3[] sideVerts = { a, b, c, d };
-        AddFace(sideVerts, w, l, depth);
+        AddFace(sideVerts, x, y, depth);
         
     }
 
-    void AddFace(Vector3[] sideVerts, int w, int l, float depth)
+    void AddFace(Vector3[] sideVerts, int x, int y, float depth)
     {
         int vi = meshData.verts.Count;
 
@@ -198,7 +198,7 @@ public class MeshGenerator : MonoBehaviour
 
         meshData.verts.AddRange(sideVerts);
 
-        Vector2 uv = BiomeData.GetBiomeInfo(w, l);
+        Vector2 uv = BiomeData.GetBiomeInfo(x, y);
 
         Color color = Color.Lerp(startCols[(int)uv.x], endCols[(int)uv.x], uv.y);
         meshData.colors.AddRange(new[] { color, color, color, color });
