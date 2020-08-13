@@ -43,10 +43,10 @@ public class MeshGenerator : MonoBehaviour
     MeshRenderer meshRenderer;
     Mesh mesh;
 
-    float waterTileHeight = 0.2f;
-    float landTileHeight = 0f;
+    readonly float waterTileHeight = 0.2f;
+    readonly float landTileHeight = 0f;
 
-    IDictionary<Sides, int[]> sideVertIndexByDir = new Dictionary<Sides, int[]>()
+    readonly IDictionary<Sides, int[]> sideVertIndexByDir = new Dictionary<Sides, int[]>()
     {
         { Sides.Up, new int[] { 0, 1 } },
         { Sides.Down, new int[] { 3, 2 } },
@@ -108,6 +108,8 @@ public class MeshGenerator : MonoBehaviour
 
     void SetupBiomes()
     {
+        BiomeData.biomes.Clear();
+
         BiomeData.biomes.Add(water);
         BiomeData.biomes.Add(sand);
         BiomeData.biomes.Add(grass);
@@ -116,6 +118,8 @@ public class MeshGenerator : MonoBehaviour
 
     void SetupMeshComponents()
     {
+        MeshData.Setup();
+
         holder = new GameObject("Terrain");
 
         meshFilter = holder.AddComponent<MeshFilter>();
@@ -163,7 +167,7 @@ public class MeshGenerator : MonoBehaviour
 
         Vector3[] topVerts = { a, b, c, d };
 
-        AddFace(topVerts, x, y, depth);
+        AddFace(topVerts, x, y);
 
         return topVerts;
     }
@@ -181,11 +185,11 @@ public class MeshGenerator : MonoBehaviour
         Vector3 d = c + Vector3.down * depth;
 
         Vector3[] sideVerts = { a, b, c, d };
-        AddFace(sideVerts, x, y, depth);
+        AddFace(sideVerts, x, y);
         
     }
 
-    void AddFace(Vector3[] sideVerts, int x, int y, float depth)
+    void AddFace(Vector3[] sideVerts, int x, int y)
     {
         int vi = MeshData.verts.Count;
 

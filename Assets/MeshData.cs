@@ -18,4 +18,13 @@ public static class MeshData
 
         mesh.RecalculateNormals();
     }
+
+    public static void Setup()
+    {
+        verts.Clear();
+        uv.Clear();
+        tris.Clear();
+        normals.Clear();
+        colors.Clear();
+    }
 }
