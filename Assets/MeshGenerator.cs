@@ -194,9 +194,9 @@ public class MeshGenerator : MonoBehaviour
 
         MeshData.verts.AddRange(sideVerts);
 
-        Vector2 uv = BiomeData.GetBiomeInfo(x, y);
+        BiomeInfo biomeInfo = BiomeData.GetBiomeInfo(x, y);
 
-        Color color = Color.Lerp(startCols[(int)uv.x], endCols[(int)uv.x], uv.y);
+        Color color = Color.Lerp(startCols[biomeInfo.biomeIndex], endCols[biomeInfo.biomeIndex], biomeInfo.biomeDistance);
 
         MeshData.colors.AddRange(new[] { color, color, color, color });
 

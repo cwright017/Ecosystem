@@ -60,7 +60,7 @@ public static class TerrainData
             return false;
         }
 
-        Vector2 biomeInfo = BiomeData.GetBiomeInfo(x, y);
+        BiomeInfo biomeInfo = BiomeData.GetBiomeInfo(x, y);
 
         if (walkableTiles[x, y] != null)
         {
@@ -84,14 +84,14 @@ public static class TerrainData
             return false;
         }
 
-        Vector2 biomeInfo = BiomeData.GetBiomeInfo(x, y);
+        BiomeInfo biomeInfo = BiomeData.GetBiomeInfo(x, y);
 
         if (waterTiles[x, y] != null)
         {
             return (bool)waterTiles[x, y];
         }
 
-        if (biomeInfo[0] == 0f)
+        if (biomeInfo.biomeIndex == 0)
         {
             waterTiles[x, y] = true;
             return true;
@@ -108,7 +108,7 @@ public static class TerrainData
             return false;
         }
 
-        Vector2 biomeInfo = BiomeData.GetBiomeInfo(x, y);
+        BiomeInfo biomeInfo = BiomeData.GetBiomeInfo(x, y);
 
         if (shoreTiles[x, y] != null)
         {
