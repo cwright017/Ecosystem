@@ -30,6 +30,7 @@ public class MeshGenerator : MonoBehaviour
 
     public Material mat;
 
+    public TreeData treeData;
     public NoiseSettings noiseSettings;
 
     public bool centre = true;
@@ -104,6 +105,8 @@ public class MeshGenerator : MonoBehaviour
         }
 
         MeshData.attach(mesh);
+
+        SpawnTrees();
     }
 
     void SetupBiomes()
@@ -150,6 +153,61 @@ public class MeshGenerator : MonoBehaviour
         }
     }
 
+    void SpawnTrees()
+    {
+        if (treeData.trees.Length == 0) return;
+
+        Array.Sort(treeData.trees, delegate (Tree a, Tree b)
+        {
+            return b.probability.CompareTo(a.probability);
+        });
+
+        System.Random spawnPrng = new System.Random(treeData.seed);
+
+        for (int y = 0; y <= length - 1; y++)
+        {
+            for (int x = 0; x <= width - 1; x++)
+            {
+                if (TerrainData.IsWalkableTile(x, y))
+                {
+                    for (int i = 0; i < treeData.trees.Length; i++)
+                    {
+                        if (spawnPrng.NextDouble() < treeData.trees[i].probability)
+                        {
+                            GameObject tree = Instantiate(treeData.trees[i].prefab, TerrainData.tileCentres[x, y], Quaternion.Euler(0, 0, 0));
+                            MeshRenderer treeMesh = tree.GetComponent<MeshRenderer>();
+
+                            // Color
+                            Color minCol = treeData.trees[i].color;
+                            Color maxCol = new Color
+                            {
+                                r = minCol.r + ((float)spawnPrng.NextDouble() * 2 - 1) * treeData.colorVariation,
+                                g = minCol.r + ((float)spawnPrng.NextDouble() * 2 - 1) * treeData.colorVariation,
+                                b = minCol.r + ((float)spawnPrng.NextDouble() * 2 - 1) * treeData.colorVariation
+                            };
+
+                            Color color = Color.Lerp(minCol, maxCol, (float)spawnPrng.NextDouble());
+
+                            treeMesh.material.color = color;
+
+                            // Scale
+                            Vector3 scale = Vector3.one * (1 + ((float)spawnPrng.NextDouble() * 2 - 1) * treeData.sizeVariation);
+                            treeMesh.transform.localScale = scale;
+
+                            // Group under terrain
+                            tree.transform.parent = holder.transform;
+
+
+                            // Mark as unwalkable
+                            TerrainData.walkableTiles[x, y] = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Vector3[] AddTop(int x, int y)
     {
         float minW = (centre) ? -width / 2f : 0;
@@ -168,6 +226,8 @@ public class MeshGenerator : MonoBehaviour
         Vector3[] topVerts = { a, b, c, d };
 
         AddFace(topVerts, x, y);
+
+        TerrainData.tileCentres[x, y] = a + new Vector3(0.5f, 0, -0.5f);
 
         return topVerts;
     }

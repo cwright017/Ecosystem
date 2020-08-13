@@ -12,6 +12,7 @@ public static class TerrainData
     public static bool?[,] waterTiles;
     public static bool?[,] shoreTiles;
     public static bool?[,] edgeTiles;
+    public static Vector3[,] tileCentres;
 
     public static void Setup(int width, int length)
     {
@@ -22,6 +23,7 @@ public static class TerrainData
         waterTiles = new bool?[width, length];
         shoreTiles = new bool?[width, length];
         edgeTiles = new bool?[width, length];
+        tileCentres = new Vector3[width, length];
     }
 
     public static void AddTile(int x, int y)
