@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 //Vector3.up
 //Vector3(0, 1, 0)
@@ -40,8 +41,13 @@ public class MeshGenerator : MonoBehaviour
     public Biome grass;
 
     GameObject holder;
+    GameObject waterHolder;
+
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
+    NavMeshSurface navMeshSurface;
+    MeshCollider meshCollider;
+
     Mesh mesh;
 
     readonly float waterTileHeight = 0.2f;
@@ -81,6 +87,23 @@ public class MeshGenerator : MonoBehaviour
 
                 bool isWaterTile = TerrainData.IsWaterTile(x,y);
 
+                if (isWaterTile)
+                {
+                    GameObject waterObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    MeshRenderer waterMesh = waterObject.GetComponent<MeshRenderer>();
+                    waterMesh.enabled = false;
+
+                    waterObject.transform.position = TerrainData.tileCentres[x, y];
+                    waterObject.transform.parent = waterHolder.transform;
+                    waterObject.name = "water";
+
+                    NavMeshObstacle waterModifier = waterObject.AddComponent<NavMeshObstacle>();
+                    waterModifier.carving = true;
+                    
+                }
+  
+
+
                 if (x == 0 || (TerrainData.IsWaterTile(x-1, y) && !isWaterTile))
                 {
                     AddSide(Sides.Left, topVerts, x, y);
@@ -107,6 +130,11 @@ public class MeshGenerator : MonoBehaviour
         MeshData.attach(mesh);
 
         SpawnTrees();
+
+        navMeshSurface.BuildNavMesh();
+
+        // Remove water objects
+        //DestroyImmediate(waterHolder);
     }
 
     void SetupBiomes()
@@ -124,6 +152,8 @@ public class MeshGenerator : MonoBehaviour
         MeshData.Setup();
 
         holder = new GameObject("Terrain");
+        waterHolder = new GameObject("Water");
+        waterHolder.transform.parent = holder.transform;
 
         meshFilter = holder.AddComponent<MeshFilter>();
 
@@ -141,6 +171,9 @@ public class MeshGenerator : MonoBehaviour
             mesh = meshFilter.sharedMesh;
             mesh.Clear();
         }
+
+        navMeshSurface = holder.AddComponent<NavMeshSurface>();
+        meshCollider = holder.AddComponent<MeshCollider>();
     }
 
     void SetupMaterial()
@@ -197,6 +230,9 @@ public class MeshGenerator : MonoBehaviour
                             // Group under terrain
                             tree.transform.parent = holder.transform;
 
+                            // Add NavMesh
+                            NavMeshObstacle navMeshObstacle = tree.AddComponent<NavMeshObstacle>();
+                            navMeshObstacle.carving = true;
 
                             // Mark as unwalkable
                             TerrainData.walkableTiles[x, y] = false;
