@@ -4,6 +4,10 @@ using UnityEngine.AI;
 public class Player : MonoBehaviour
 {
     NavMeshAgent agent;
+    public float wanderTimer;
+    public float wanderRadius;
+
+    float timer;
 
     void Start()
     {
@@ -24,13 +28,23 @@ public class Player : MonoBehaviour
             }
         }
 
-        Vector3 pos = agent.transform.position;
-        Debug.Log("TILE: " + pos);
-        if (TerrainData.IsShoreTile((int)pos.x, (int)pos.z))
+        timer += Time.deltaTime;
+
+        if (timer > wanderTimer)
         {
-            Debug.Log("AT SHORE");
-            agent.destination = pos;
+            Vector3 dir = Random.insideUnitSphere * wanderRadius;
+            dir += transform.position;
+
+            NavMeshHit navHit;
+
+            NavMesh.SamplePosition(dir, out navHit, wanderRadius, LayerMask.GetMask("Default"));
+
+            Vector3 newPos = navHit.position;
+
+            agent.SetDestination(newPos);
+            timer = 0;
         }
+
     } 
 
     private void OnTriggerEnter(Collider other)
