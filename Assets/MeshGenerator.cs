@@ -40,15 +40,11 @@ public class MeshGenerator : MonoBehaviour
     public Biome sand;
     public Biome grass;
 
-    GameObject holder;
+    GameObject landHolder;
     GameObject waterHolder;
 
-    MeshFilter meshFilter;
-    MeshRenderer meshRenderer;
-    NavMeshSurface navMeshSurface;
-    MeshCollider meshCollider;
-
-    Mesh mesh;
+    MeshData landData;
+    MeshData waterData;
 
     readonly float waterTileHeight = 0.2f;
     readonly float landTileHeight = 0f;
@@ -87,23 +83,6 @@ public class MeshGenerator : MonoBehaviour
 
                 bool isWaterTile = TerrainData.IsWaterTile(x,y);
 
-                if (isWaterTile)
-                {
-                    GameObject waterObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    MeshRenderer waterMesh = waterObject.GetComponent<MeshRenderer>();
-                    waterMesh.enabled = false;
-
-                    waterObject.transform.position = TerrainData.tileCentres[x, y];
-                    waterObject.transform.parent = waterHolder.transform;
-                    waterObject.name = "water";
-
-                    NavMeshObstacle waterModifier = waterObject.AddComponent<NavMeshObstacle>();
-                    waterModifier.carving = true;
-                    
-                }
-  
-
-
                 if (x == 0 || (TerrainData.IsWaterTile(x-1, y) && !isWaterTile))
                 {
                     AddSide(Sides.Left, topVerts, x, y);
@@ -127,14 +106,12 @@ public class MeshGenerator : MonoBehaviour
             }
         }
 
-        MeshData.attach(mesh);
+        landData.attach();
+        waterData.attach();
 
         SpawnTrees();
 
-        navMeshSurface.BuildNavMesh();
-
-        // Remove water objects
-        //DestroyImmediate(waterHolder);
+        landData.navMeshSurface.BuildNavMesh();
     }
 
     void SetupBiomes()
@@ -149,31 +126,17 @@ public class MeshGenerator : MonoBehaviour
 
     void SetupMeshComponents()
     {
-        MeshData.Setup();
+        
+        landHolder = new GameObject("Terrain");
 
-        holder = new GameObject("Terrain");
         waterHolder = new GameObject("Water");
-        waterHolder.transform.parent = holder.transform;
+        waterHolder.layer = LayerMask.NameToLayer("Water");
 
-        meshFilter = holder.AddComponent<MeshFilter>();
+        // Parent under land
+        waterHolder.transform.parent = landHolder.transform;
 
-        meshRenderer = holder.AddComponent<MeshRenderer>();
-        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-        if (meshFilter.sharedMesh == null)
-        {
-            mesh = new Mesh();
-            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-            meshFilter.sharedMesh = mesh;
-        }
-        else
-        {
-            mesh = meshFilter.sharedMesh;
-            mesh.Clear();
-        }
-
-        navMeshSurface = holder.AddComponent<NavMeshSurface>();
-        meshCollider = holder.AddComponent<MeshCollider>();
+        landData = new MeshData(landHolder, true);
+        waterData = new MeshData(waterHolder);
     }
 
     void SetupMaterial()
@@ -182,7 +145,8 @@ public class MeshGenerator : MonoBehaviour
         {
             mat.SetColor("_Color", Color.white);
 
-            meshRenderer.sharedMaterial = mat;
+            landData.meshRenderer.sharedMaterial = mat;
+            waterData.meshRenderer.sharedMaterial = mat;
         }
     }
 
@@ -228,7 +192,7 @@ public class MeshGenerator : MonoBehaviour
                             treeMesh.transform.localScale = scale;
 
                             // Group under terrain
-                            tree.transform.parent = holder.transform;
+                            tree.transform.parent = landHolder.transform;
 
                             // Add NavMesh
                             NavMeshObstacle navMeshObstacle = tree.AddComponent<NavMeshObstacle>();
@@ -251,6 +215,8 @@ public class MeshGenerator : MonoBehaviour
 
         bool isWaterTile = TerrainData.IsWaterTile(x, y);
 
+        MeshData meshData = isWaterTile ? waterData : landData;
+
         float depth = isWaterTile ? -waterTileHeight : landTileHeight;
 
         // Top 
@@ -261,7 +227,7 @@ public class MeshGenerator : MonoBehaviour
 
         Vector3[] topVerts = { a, b, c, d };
 
-        AddFace(topVerts, x, y);
+        AddFace(topVerts, x, y, meshData);
 
         TerrainData.tileCentres[x, y] = a + new Vector3(0.5f, 0, -0.5f);
 
@@ -272,6 +238,8 @@ public class MeshGenerator : MonoBehaviour
     {
         bool isWaterTile = TerrainData.IsWaterTile(x, y);
 
+        MeshData meshData = isWaterTile ? waterData : landData;
+
         float depth = isWaterTile ? waterTileHeight : waterTileHeight * 2;
 
         int[] i = sideVertIndexByDir[side];
@@ -281,32 +249,33 @@ public class MeshGenerator : MonoBehaviour
         Vector3 d = c + Vector3.down * depth;
 
         Vector3[] sideVerts = { a, b, c, d };
-        AddFace(sideVerts, x, y);
+
+        AddFace(sideVerts, x, y, meshData);
         
     }
 
-    void AddFace(Vector3[] sideVerts, int x, int y)
+    void AddFace(Vector3[] sideVerts, int x, int y, MeshData meshData)
     {
-        int vi = MeshData.verts.Count;
+        int vi = meshData.verts.Count;
 
         Color[] startCols = { water.startCol, sand.startCol, grass.startCol };
         Color[] endCols = { water.endCol, sand.endCol, grass.endCol };
 
-        MeshData.verts.AddRange(sideVerts);
+        meshData.verts.AddRange(sideVerts);
 
         BiomeInfo biomeInfo = BiomeData.GetBiomeInfo(x, y);
 
         Color color = Color.Lerp(startCols[biomeInfo.biomeIndex], endCols[biomeInfo.biomeIndex], biomeInfo.biomeDistance);
 
-        MeshData.colors.AddRange(new[] { color, color, color, color });
+        meshData.colors.AddRange(new[] { color, color, color, color });
 
-        MeshData.tris.Add(vi);
-        MeshData.tris.Add(vi + 1);
-        MeshData.tris.Add(vi + 2);
+        meshData.tris.Add(vi);
+        meshData.tris.Add(vi + 1);
+        meshData.tris.Add(vi + 2);
 
-        MeshData.tris.Add(vi + 2);
-        MeshData.tris.Add(vi + 1);
-        MeshData.tris.Add(vi + 3);
+        meshData.tris.Add(vi + 2);
+        meshData.tris.Add(vi + 1);
+        meshData.tris.Add(vi + 3);
     }
 
 }
