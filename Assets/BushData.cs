@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public struct Bush
+public struct Element
 {
     public GameObject prefab;
     [Range(0, 1)]
@@ -10,11 +10,15 @@ public struct Bush
 }
 
 [System.Serializable]
-public class BushData
+public class Folliage
 {
     public int seed;
-    public Bush[] bushes;
+    public Element[] elements;
     public float colorVariation = 0.1f;
     public float sizeVariation = 0.1f;
+    public bool isObstical = false;
+}
 
+public class BushData : Folliage
+{
 }
