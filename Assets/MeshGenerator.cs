@@ -32,6 +32,7 @@ public class MeshGenerator : MonoBehaviour
     public Material mat;
 
     public TreeData treeData;
+    public BushData bushData;
     public NoiseSettings noiseSettings;
 
     public bool centre = true;
@@ -110,6 +111,7 @@ public class MeshGenerator : MonoBehaviour
         waterData.attach();
 
         SpawnTrees();
+        SpawnBushes();
 
         landData.navMeshSurface.BuildNavMesh();
     }
@@ -189,7 +191,7 @@ public class MeshGenerator : MonoBehaviour
 
                             // Scale
                             Vector3 scale = Vector3.one * (1 + ((float)spawnPrng.NextDouble() * 2 - 1) * treeData.sizeVariation);
-                            treeMesh.transform.localScale = scale;
+                            tree.transform.localScale = scale;
 
                             // Group under terrain
                             tree.transform.parent = landHolder.transform;
@@ -197,6 +199,60 @@ public class MeshGenerator : MonoBehaviour
                             // Add NavMesh
                             NavMeshObstacle navMeshObstacle = tree.AddComponent<NavMeshObstacle>();
                             navMeshObstacle.carving = true;
+
+                            // Mark as unwalkable
+                            TerrainData.walkableTiles[x, y] = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void SpawnBushes()
+    {
+        if (bushData.bushes.Length == 0) return;
+
+        Array.Sort(bushData.bushes, delegate (Bush a, Bush b)
+        {
+            return b.probability.CompareTo(a.probability);
+        });
+
+        System.Random spawnPrng = new System.Random(bushData.seed);
+
+        for (int y = 0; y <= length - 1; y++)
+        {
+            for (int x = 0; x <= width - 1; x++)
+            {
+                if (TerrainData.IsWalkableTile(x, y))
+                {
+                    for (int i = 0; i < bushData.bushes.Length; i++)
+                    {
+                        if (spawnPrng.NextDouble() < bushData.bushes[i].probability)
+                        {
+                            GameObject bush = Instantiate(bushData.bushes[i].prefab, TerrainData.tileCentres[x, y], Quaternion.Euler(0, 0, 0));
+                            MeshRenderer bushMesh = bush.GetComponent<MeshRenderer>();
+
+                            // Color
+                            Color minCol = bushData.bushes[i].color;
+                            Color maxCol = new Color
+                            {
+                                r = minCol.r + ((float)spawnPrng.NextDouble() * 2 - 1) * bushData.colorVariation,
+                                g = minCol.r + ((float)spawnPrng.NextDouble() * 2 - 1) * bushData.colorVariation,
+                                b = minCol.r + ((float)spawnPrng.NextDouble() * 2 - 1) * bushData.colorVariation
+                            };
+
+                            Color color = Color.Lerp(minCol, maxCol, (float)spawnPrng.NextDouble());
+
+                            bushMesh.material.color = color;
+
+                            // Scale
+                            Vector3 scale = Vector3.one * (1 + ((float)spawnPrng.NextDouble() * 2 - 1) * bushData.sizeVariation);
+                            bush.transform.localScale = scale;
+
+                            // Group under terrain
+                            bush.transform.parent = landHolder.transform;
 
                             // Mark as unwalkable
                             TerrainData.walkableTiles[x, y] = false;
