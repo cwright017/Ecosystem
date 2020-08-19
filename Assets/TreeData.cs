@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public class BushData : Folliage
+public class TreeData : Folliage
 {
 }
